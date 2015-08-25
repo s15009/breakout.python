@@ -26,9 +26,10 @@ def point_collision(a, b):
     return p1 or p2 or p3 or p4
 
 class Ball:
-    def __init__(self, canvas, paddle, blocks, speed, color):
+    def __init__(self, canvas, paddle,score, blocks, speed, color):
         self.canvas = canvas
         self.paddle = paddle
+        self.score = score
         self.blocks = blocks
         self.speed = speed
         self.id = canvas.create_oval(10, 10, 25, 25, fill=color)
@@ -48,6 +49,7 @@ class Ball:
         if pos[2] >= paddle_pos[0] and pos[0] <= paddle_pos[2]:
             if pos[3] >= paddle_pos[1] and pos[3] <= paddle_pos[3]:
                 self.x += self.paddle.x
+                self.score.hit()
                 return True
         return False
 
@@ -147,16 +149,26 @@ class Block:
 
     def delete(self):
         self.canvas.delete(self.id)
+
+class Score:
+    def __init__(self, canvas, color):
+        self.score = 0
+        self.canvas = canvas
+        self.id = canvas.create_text(300, 250, text=self.score, fill=color)
+
+    def hit(self):
+        self.score += 1
+        self.canvas.itemconfig(self.id, text=self.score)
             
 
-class TextLabel:
-    def __init__(self, canvas, x, y, text=text, fontsize, color):
+class Gameover:
+    def __init__(self, canvas, x, y, text, fontsize, color):
         self.canvas = canvas
-        self.id = canvas.create_text(x, y, text=text, fill=color,
-                                     font=('Times', fontsize), state='hidden')
+        self.id = canvas.create_text(x, y, text=text, font=('Times', fontsize),
+                                    fill=color, state='hidden')
 
-    def show(self, canvas):
-        self.canvas_itemconfig(self.id, state='normal')
+    def show(self):
+        self.canvas.itemconfig(self.id, state='normal')
 
            
 #config
@@ -182,24 +194,28 @@ for y in range(7):
     for x in range(13):
         blocks.append(Block(canvas, x, y, random.choice(COLORS)))
 
+score = Score(canvas, 'green')
 paddle = Paddle(canvas, PADDLE_SPEED, 'blue')
-ball = Ball(canvas, paddle, blocks, BALL_SPEED, 'red')
-gameover = TextLabel(canvas, 250, 200, "uwaaa", 35, 'cyan')
+ball = Ball(canvas, paddle, score, blocks, BALL_SPEED, 'red')
+gameover = Gameover(canvas, 275, 275, "G A M E O V E R", 50, 'cyan')
 
 
 
 
 
 while True:
-    if ball.hit_bottom == False and paddle.started == True:
-        ball.draw()
-        paddle.draw()
-    else:
-        gameover.show()
+    if paddle.started == True:   
+        if ball.hit_bottom == False:
+            ball.draw()
+            paddle.draw()
+        else:
+            gameover.show()
+            break
+    pass
         
     tk.update_idletasks()
     tk.update()
-    time.sleep(1/FPS)
+    time.sleep(0.5/FPS)
 
 
 
